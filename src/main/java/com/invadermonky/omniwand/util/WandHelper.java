@@ -99,7 +99,7 @@ public class WandHelper {
 
         //Setting new display name for stack
         if (newStack.getItem() != Registry.OMNIWAND) {
-            // 存储物品的注册名而不是本地化名称，这样在客户端可以根据本地化环境显示正确的名称
+            // Save the registry name instead of the mod id, to supoort localization in server
             setDisplayNameCache(newStack, newStack.getItem().getRegistryName().toString());
             String displayName = TextFormatting.RESET + new TextComponentTranslation("omniwand:sudo_name",  TextFormatting.GREEN + newStack.getItem().getItemStackDisplayName(newStack) + TextFormatting.RESET). getFormattedText();
             newStack.setStackDisplayName(displayName);
@@ -200,8 +200,8 @@ public class WandHelper {
         NBTTagCompound tag = getStackTag(stack);
         if (tag.hasKey(TAG_DISPLAY_NAME_CACHE)) {
             String cachedName = tag.getString(TAG_DISPLAY_NAME_CACHE);
-            // 如果缓存的是注册名，则获取本地化显示名称
-            if (cachedName.contains(":")) { // 注册名格式 modid:name
+            // Get the item name from the cached name
+            if (cachedName.contains(":")) { // modid:name
                 Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(cachedName));
                 if (item != null) {
                     ItemStack itemStack = new ItemStack(item);

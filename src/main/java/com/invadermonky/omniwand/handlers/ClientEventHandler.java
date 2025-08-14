@@ -26,7 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = Omniwand.MOD_ID)
 public class ClientEventHandler {
 
-    // 添加静态变量来存储上一次的目标信息
+    // Using static variable to store the last target mod
     private static String lastTargetMod = Omniwand.MOD_ID;
     private static String lastActualKey = Omniwand.MOD_ID;
 
@@ -38,19 +38,19 @@ public class ClientEventHandler {
         if (WandHelper.isOmniwand(heldItem)) {
             RayTraceResult result = playerSP.rayTrace(playerSP.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue(), 1.0f);
 
-            String targetMod = Omniwand.MOD_ID; // 默认为目标是Omniwand本身
+            String targetMod = Omniwand.MOD_ID; // Default to Omniwand
             if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK) {
                 IBlockState lookState = playerSP.world.getBlockState(result.getBlockPos());
                 targetMod = WandHelper.getModOrAlias(lookState);
             }
 
-            // 只有当目标mod发生变化时才重新计算实际目标
+            // Only update the actual key if the target mod has changed
             if (!lastTargetMod.equals(targetMod)) {
                 lastTargetMod = targetMod;
                 lastActualKey = getActualTargetKey(heldItem, targetMod);
             }
 
-            // 使用稳定的实际目标key进行转换
+            // Use the actual key to transform the wand
             if (!WandHelper.getModSlot(heldItem).equals(lastActualKey) && WandHelper.getAutoMode(heldItem)) {
                 ItemStack newStack = WandHelper.getTransformedStack(heldItem, lastActualKey, false);
                 WandHelper.setAutoMode(newStack, true);
@@ -63,26 +63,26 @@ public class ClientEventHandler {
     }
 
     /**
-     * 获取魔杖实际应该转换到的目标key
-     * @param wandStack 魔杖物品堆
-     * @param targetMod 目标模组ID
-     * @return 实际应该转换到的key
+     * Get the actual key to transform to based on the target mod
+     * @param wandStack Omniwand item stack
+     * @param targetMod Target mod id
+     * @return The actual key to transform to
      */
     private static String getActualTargetKey(ItemStack wandStack, String targetMod) {
-        // 如果目标是Omniwand本身，则返回Omniwand
+        // If the target mod is Omniwand, return Omniwand
         if (targetMod.equals(Omniwand.MOD_ID)) {
             return targetMod;
         }
         
-        // 获取魔杖数据
+        // Get the wand data
         NBTTagCompound wandData = WandHelper.getWandData(wandStack);
         
-        // 直接包含目标模组的工具
+        // If the target mod is in the wand data, return it
         if (wandData.hasKey(targetMod)) {
             return targetMod;
         }
         
-        // 检查是否有Transform Items可以用于该模组
+        // Check if the target mod is an alias in the wand data
         for (String key : wandData.getKeySet()) {
             if (!key.equals(Omniwand.MOD_ID)) {
                 NBTTagCompound itemTag = wandData.getCompoundTag(key);
@@ -90,13 +90,13 @@ public class ClientEventHandler {
                 if (!itemStack.isEmpty()) {
                     String itemMod = WandHelper.getModOrAlias(itemStack);
                     if (itemMod.equals(targetMod) && ConfigTags.isTransformItem(itemStack)) {
-                        return key; // 返回实际存储的键名
+                        return key; // Return the key
                     }
                 }
             }
         }
         
-        // 如果没有找到合适的工具，则返回Omniwand本身
+        // If no mods match, return the default mod
         return Omniwand.MOD_ID;
     }
 
